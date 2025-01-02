@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using authentication_authorization.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace authentication_authorization.Data
 {
@@ -8,7 +9,18 @@ namespace authentication_authorization.Data
             : base(options)
         {
         }
+        public DbSet<User> Users { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>().HasData(
+                new User
+                {
+                    Id = 1,
+                    Email = "pratik@gmail.com",
+                    Password = "Admin",
+                });
+        } 
     }
-    
 }
 

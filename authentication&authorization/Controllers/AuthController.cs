@@ -1,7 +1,14 @@
-﻿using authentication_authorization.Data;
+﻿using System.Configuration;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using authentication_authorization.Data;
 using authentication_authorization.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using static authentication_authorization.Models.UserDTO;
 
 namespace authentication_authorization.Controllers
 {
@@ -11,44 +18,85 @@ namespace authentication_authorization.Controllers
     public class AuthController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(ApplicationDbContext context)
+        public AuthController(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         [HttpPost]
         [Route("registration")]
-        public ActionResult Registration()
+        public IActionResult Registration(User newUser)
         {
-            return View();
+            var existingUser = _context.Users.FirstOrDefault(u => u.Email == newUser.Email);
+                if (existingUser != null)
+                {
+                    return Conflict("User already exists");
+                }
+
+            _context.Users.Add(newUser);
+            _context.SaveChanges();
+
+            return Ok(new { message = "User registered successfully." });
         }
 
         [HttpPost]
         [Route("login")]
-        public ActionResult Login(LoginDTO loginDTO)
+        public IActionResult Login(User loginDTO)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == loginDTO.Email && u.Password == loginDTO.Password);
-            if (user == null)
+            if (user != null)
             {
-                return Unauthorized();
+                var claims = new List<Claim>
+                        {
+                            new Claim(JwtRegisteredClaimNames.Sub , _configuration["Jwt:subject"]),
+                            new Claim(JwtRegisteredClaimNames.Jti , Guid.NewGuid().ToString() ),
+                            new Claim("UserId", user.Id.ToString()),
+                            new Claim("Email", user.Email),
+
+                        };
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:key"]));
+                var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                var token = new JwtSecurityToken(
+                    _configuration["Jwt:Issuer"],
+                    _configuration["Jwt:Audience"],
+                    claims,
+                    expires: DateTime.Now.AddMinutes(30),
+                    signingCredentials: signIn
+                );
+
+                string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                return Ok(new { token = tokenString, user });
+
             }
+            return Unauthorized();
         }
 
         [HttpPost]
         [Route("GetUsers")]
-        public ActionResult GetUsers()
+        public IActionResult GetUsers()
         {
-            return View();
-        }
-=
-        [HttpPost]
-        [Route("GetUser")]
-        public ActionResult GetUser(int id)
-        {
-            return View();
+            var users = _context.Users.ToList();
+            return Ok(users);
         }
 
-        
+        //[Authorize]
+        [HttpPost]
+        [Route("GetUser")]
+        public IActionResult GetUser([FromBody] GetUserRequest request )
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == request.Id); 
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            return Ok(user);
+        }
+
+
     }
 }
