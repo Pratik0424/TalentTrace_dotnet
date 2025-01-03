@@ -1,40 +1,41 @@
-﻿using System.Configuration;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using authentication_authorization.Data;
-using authentication_authorization.Models;
-using Microsoft.AspNetCore.Authorization;
+using Login_using_auth.Data;
+using Login_using_auth.Models;
+
+//using Login_using_auth.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using static authentication_authorization.Models.UserDTO;
+using static Login_using_auth.Models.UserDTO;
 
-namespace authentication_authorization.Controllers
+namespace Login_using_auth.Controllers
 {
+
     //[Authorize]  // entire controller level
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IConfiguration _configuration;
+            private readonly ApplicationDbContext _context;
+            private readonly IConfiguration _configuration;
 
-        public AuthController(ApplicationDbContext context, IConfiguration configuration)
-        {
-            _context = context;
-            _configuration = configuration;
-        }
+            public AuthController(ApplicationDbContext context, IConfiguration configuration)
+            {
+                _context = context;
+                _configuration = configuration;
+            }
 
-        [HttpPost]
-        [Route("registration")]
+            [HttpPost]
+            [Route("registration")]
         public IActionResult Registration(User newUser)
         {
             var existingUser = _context.Users.FirstOrDefault(u => u.Email == newUser.Email);
-                if (existingUser != null)
-                {
-                    return Conflict("User already exists");
-                }
+            if (existingUser != null)
+            {
+                return Conflict("User already exists");
+            }
 
             _context.Users.Add(newUser);
             _context.SaveChanges();
@@ -43,7 +44,7 @@ namespace authentication_authorization.Controllers
         }
 
         [HttpPost]
-        [Route("login")]
+            [Route("login")]
         public IActionResult Login(User loginDTO)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == loginDTO.Email && u.Password == loginDTO.Password);
@@ -77,26 +78,24 @@ namespace authentication_authorization.Controllers
         }
 
         [HttpPost]
-        [Route("GetUsers")]
-        public IActionResult GetUsers()
-        {
-            var users = _context.Users.ToList();
-            return Ok(users);
-        }
-
-        //[Authorize] // api level or method level
-        [HttpPost]
-        [Route("GetUser")]
-        public IActionResult GetUser([FromBody] GetUserRequest request )
-        {
-            var user = _context.Users.FirstOrDefault(u => u.Id == request.Id); 
-            if (user == null)
+            [Route("GetUsers")]
+            public IActionResult GetUsers()
             {
-                return NotFound("User not found");
+                var users = _context.Users.ToList();
+                return Ok(users);
             }
-            return Ok(user);
-        }
 
-
+            //[Authorize] // api level or method level
+            [HttpPost]
+            [Route("GetUser")]
+            public IActionResult GetUser([FromBody] GetUserRequest request)
+            {
+                var user = _context.Users.FirstOrDefault(u => u.Id == request.Id);
+                if (user == null)
+                {
+                    return NotFound("User not found");
+                }
+                return Ok(user);
+            }
     }
 }
