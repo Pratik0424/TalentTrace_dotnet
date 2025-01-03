@@ -3,8 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Login_using_auth.Data;
 using Login_using_auth.Models;
-
-//using Login_using_auth.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -27,8 +26,8 @@ namespace Login_using_auth.Controllers
                 _configuration = configuration;
             }
 
-            [HttpPost]
-            [Route("registration")]
+         [HttpPost]
+         [Route("registration")]
         public IActionResult Registration(User newUser)
         {
             var existingUser = _context.Users.FirstOrDefault(u => u.Email == newUser.Email);
@@ -44,8 +43,8 @@ namespace Login_using_auth.Controllers
         }
 
         [HttpPost]
-            [Route("login")]
-        public IActionResult Login(User loginDTO)
+        [Route("login")]
+        public IActionResult Login([FromBody] User loginDTO)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == loginDTO.Email && u.Password == loginDTO.Password);
             if (user != null)
@@ -71,31 +70,52 @@ namespace Login_using_auth.Controllers
                 );
 
                 string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-                return Ok(new { token = tokenString, user });
+                //return RedirectToAction("Index", "Home");
+                return Ok(new { token = tokenString });
 
             }
-            return Unauthorized();
+            //return RedirectToAction("Registration", "Auth");
+            
+            return Unauthorized("Invalid email or password.");
         }
 
-        [HttpPost]
-            [Route("GetUsers")]
-            public IActionResult GetUsers()
-            {
-                var users = _context.Users.ToList();
-                return Ok(users);
-            }
+         [HttpPost]
+        [Route("GetUsers")]
+        public IActionResult GetUsers()
+        {
+            var users = _context.Users.ToList();
+            return Ok(users);
+        }
 
-            //[Authorize] // api level or method level
-            [HttpPost]
-            [Route("GetUser")]
-            public IActionResult GetUser([FromBody] GetUserRequest request)
+        //[Authorize] // api level or method level
+        [HttpPost]
+        [Route("GetUser")]
+        public IActionResult GetUser([FromBody] GetUserRequest request)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == request.Id);
+            if (user == null)
             {
-                var user = _context.Users.FirstOrDefault(u => u.Id == request.Id);
-                if (user == null)
-                {
-                    return NotFound("User not found");
-                }
-                return Ok(user);
+                return NotFound("User not found");
             }
+            return Ok(user);
+        }
+
+        [HttpGet]
+        [Route("login")] 
+        public IActionResult GetLogin() 
+        {
+            return View();
+        }
+
+        [HttpGet]
+        [Route("registration")]
+        public IActionResult GetRegistration()
+        {
+            return View();
+        }
+        public IActionResult Index()
+        {
+            return View();
+        }
     }
 }

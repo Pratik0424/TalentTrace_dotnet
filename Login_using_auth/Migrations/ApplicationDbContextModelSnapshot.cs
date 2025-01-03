@@ -33,8 +33,15 @@ namespace Login_using_auth.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Password")
                         .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Username")
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
@@ -46,7 +53,9 @@ namespace Login_using_auth.Migrations
                         {
                             Id = 1,
                             Email = "pratik@gmail.com",
-                            Password = "Admin"
+                            Name = "Pratik",
+                            Password = "Admin@123",
+                            Username = "Pratik"
                         });
                 });
 #pragma warning restore 612, 618

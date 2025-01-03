@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Login_using_auth.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250103080235_loginUserAuthDb")]
-    partial class loginUserAuthDb
+    [Migration("20250103211305_ModelUpgrade")]
+    partial class ModelUpgrade
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,8 +36,15 @@ namespace Login_using_auth.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Password")
                         .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Username")
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
@@ -49,7 +56,9 @@ namespace Login_using_auth.Migrations
                         {
                             Id = 1,
                             Email = "pratik@gmail.com",
-                            Password = "Admin"
+                            Name = "Pratik",
+                            Password = "Admin@123",
+                            Username = "Pratik"
                         });
                 });
 #pragma warning restore 612, 618

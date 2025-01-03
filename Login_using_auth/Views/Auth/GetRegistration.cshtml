@@ -1,0 +1,54 @@
+﻿@model Login_using_auth.Models.User
+
+<h2>Register</h2>
+
+<form id="registrationForm">
+    <div class="form-group">
+        <label asp-for="Name">Name</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Username">Username</label>
+        <input asp-for="Username" class="form-control" />
+        <span asp-validation-for="Username" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Email">Email</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Password">Password</label>
+        <input asp-for="Password" type="password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>
+
+<script>
+    document.getElementById("registrationForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const formData = {
+            Name: document.querySelector("[name='Name']").value,
+            Username: document.querySelector("[name='Username']").value,
+            Email: document.querySelector("[name='Email']").value,
+            Password: document.querySelector("[name='Password']").value
+        };
+
+        const response = await fetch("/api/auth/registration", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+            window.location.href = "/api/auth/login";
+        } else {
+            alert("Registration failed. User may already exist.");
+        }
+    });
+</script>

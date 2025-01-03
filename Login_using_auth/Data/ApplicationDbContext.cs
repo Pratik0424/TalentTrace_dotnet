@@ -17,8 +17,10 @@ namespace Login_using_auth.Data
                 new User
                 {
                     Id = 1,
+                    Name = "Pratik",
+                    Username = "Pratik",
                     Email = "pratik@gmail.com",
-                    Password = "Admin",
+                    Password = "Admin@123",
                 });
         }
     }
